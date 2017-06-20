@@ -14,7 +14,7 @@ USER_SERVICE_PORT = 3002
 
 #APP_REPO     = https://github.com/PATRIC3/p3_web.git
 APP_REPO     = https://github.com/olsonanl/p3_web.git
-APP_TAG	     = -b build.fix
+#APP_TAG	     = -b build.fix
 APP_DIR      = p3_web
 APP_SCRIPT   = ./bin/p3-web
 
