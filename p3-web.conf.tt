@@ -1,0 +1,31 @@
+{
+	"production": true,
+	"redis": {
+		"host": "[% redis_host %]",
+		"port": [% redis_port %],
+		"db": [% redis_db %],
+		"prefix": "[% redis_prefix %]",
+		"pass":"[% redis_pass %]"
+	},
+	"accountURL": "[% account_url %]",
+	"cookieSecret": "[% cookie_secret %]",
+	"cookieKey": "[% cookie_key %]",
+	"cookieDomain": "[% cookie_domain %]",
+	"authorizationURL": "[% authorization_url %]",
+	"workspaceServiceURL":"[% workspace_service_url %]",
+	"appServiceURL": "[% app_service_url %]",
+	"dataServiceURL": "[% data_api_url %]",
+	"enableDevAuth": [% enable_dev_auth %],
+	"enableDevTools": [% enable_dev_tools %],
+	"gaID": "[% google_analytics_id %]",
+	"newrelic_license_key": "[% newrelic_license_key %]",
+	"email": {
+		"localSendmail": [% email_local_sendmail %],
+		"defaultFrom": "[% email_default_from %]",
+		"defaultSender": "[% email_default_sender %]",
+		"host": "[% email_host %]",
+		"port": [% email_port %],
+		"username": "[% email_username %]",
+		"password": "[% email_password %]"
+	}
+}
