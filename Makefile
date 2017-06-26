@@ -152,12 +152,12 @@ build-config:
 deploy-run-scripts:
 	mkdir -p $(TARGET)/services/$(SERVICE_DIR)
 	for script in start_service stop_service postinstall; do \
-		$(TPAGE) $(TPAGE_ARGS) service/$$script.tt > $(TARGET)/services/$(SERVICE)/$$script ; \
-		chmod +x $(TARGET)/services/$(SERVICE)/$$script ; \
+		$(TPAGE) $(TPAGE_ARGS) service/$$script.tt > $(TARGET)/services/$(SERVICE_NAME)/$$script ; \
+		chmod +x $(TARGET)/services/$(SERVICE_NAME)/$$script ; \
 	done
 	mkdir -p $(TARGET)/postinstall
-	rm -f $(TARGET)/postinstall/$(SERVICE)
-	ln -s ../services/$(SERVICE)/postinstall $(TARGET)/postinstall/$(SERVICE)
+	rm -f $(TARGET)/postinstall/$(SERVICE_NAME)
+	ln -s ../services/$(SERVICE_NAME)/postinstall $(TARGET)/postinstall/$(SERVICE_NAME)
 
 deploy-upstart: deploy-service
 	-cp service/$(SERVICE_NAME).conf /etc/init/
