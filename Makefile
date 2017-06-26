@@ -151,14 +151,13 @@ build-config:
 
 deploy-run-scripts:
 	mkdir -p $(TARGET)/services/$(SERVICE_DIR)
-	$(TPAGE) $(TPAGE_ARGS) service/start_service.tt > $(TARGET)/services/$(SERVICE_DIR)/start_service
-	chmod +x $(TARGET)/services/$(SERVICE_DIR)/start_service
-	$(TPAGE) $(TPAGE_ARGS) service/stop_service.tt > $(TARGET)/services/$(SERVICE_DIR)/stop_service
-	chmod +x $(TARGET)/services/$(SERVICE_DIR)/stop_service
-	if [ -f service/upstart.tt ] ; then \
-		$(TPAGE) $(TPAGE_ARGS) service/upstart.tt > service/$(SERVICE_NAME).conf; \
-	fi
-	echo "done executing deploy-service target"
+	for script in start_service stop_service postinstall; do \
+		$(TPAGE) $(TPAGE_ARGS) service/$$script.tt > $(TARGET)/services/$(SERVICE)/$$script ; \
+		chmod +x $(TARGET)/services/$(SERVICE)/$$script ; \
+	done
+	mkdir -p $(TARGET)/postinstall
+	rm -f $(TARGET)/postinstall/$(SERVICE)
+	ln -s ../services/$(SERVICE)/postinstall $(TARGET)/postinstall/$(SERVICE)
 
 deploy-upstart: deploy-service
 	-cp service/$(SERVICE_NAME).conf /etc/init/
