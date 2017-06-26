@@ -106,14 +106,22 @@ SRC_PERL = $(wildcard scripts/*.pl)
 
 default: build-app build-config
 
-build-app:
-	if [ ! -f $(APP_DIR)/package.json ] ; then \
-		git clone $(APP_TAG) --recursive $(APP_REPO) $(APP_DIR); \
-	fi
-	cd $(APP_DIR); npm install grunt
-	cd $(APP_DIR); npm install
-	cd $(APP_DIR); npm install forever
-	cd $(APP_DIR); ./buildClient.sh
+build-app: $(APP_DIR)/package.json build-grunt.tag build-primary.tag build-forever.tag build-app-client.tag
+
+$(APP_DIR)/package.json:
+	git clone $(APP_TAG) --recursive $(APP_REPO) $(APP_DIR); 
+
+build-grunt.tag:
+	(cd $(APP_DIR); npm install grunt) && touch build-grunt.tag
+
+build-primary.tag:
+	(cd $(APP_DIR); npm install) && touch build-primary.tag
+
+build-forever.tag:
+	(cd $(APP_DIR); npm install forever) && touch build-forever.tag
+
+build-app-client.tag:
+	(cd $(APP_DIR); ./buildClient.sh) && touch build-app-client.tag
 
 dist: 
 
