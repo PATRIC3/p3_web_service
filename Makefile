@@ -110,6 +110,7 @@ build-app: $(APP_DIR)/package.json build-grunt.tag build-primary.tag build-forev
 
 $(APP_DIR)/package.json:
 	git clone $(APP_TAG) --recursive $(APP_REPO) $(APP_DIR); 
+	ln -s $(APP_DIR) app
 
 build-grunt.tag:
 	(cd $(APP_DIR); npm install grunt) && touch build-grunt.tag
