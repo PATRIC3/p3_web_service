@@ -140,8 +140,8 @@ deploy-scripts:
 deploy-service: deploy-run-scripts deploy-app deploy-config
 
 deploy-app: build-app
-	-mkdir $(SERVICE_APP_DIR)
-	rsync --delete -arv $(APP_DIR)/. $(SERVICE_APP_DIR)
+	-mkdir -p $(SERVICE_APP_DIR)
+	rsync --exclude .git --delete -arv $(APP_DIR)/. $(SERVICE_APP_DIR)
 
 deploy-config: build-config
 	$(TPAGE) $(TPAGE_ARGS) $(CONFIG_TEMPLATE) > $(SERVICE_APP_DIR)/$(CONFIG)
