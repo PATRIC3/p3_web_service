@@ -152,7 +152,7 @@ deploy-app: build-app
 	-mkdir -p $(SERVICE_APP_DIR)
 	rsync --exclude .git --delete -arv $(APP_DIR)/. $(SERVICE_APP_DIR)
 
-deploy-config: build-config
+deploy-config: 
 	$(TPAGE) $(TPAGE_ARGS) $(CONFIG_TEMPLATE) > $(SERVICE_APP_DIR)/$(CONFIG)
 
 build-config:
@@ -167,6 +167,10 @@ deploy-run-scripts:
 	mkdir -p $(TARGET)/postinstall
 	rm -f $(TARGET)/postinstall/$(SERVICE_NAME)
 	ln -s ../services/$(SERVICE_NAME)/postinstall $(TARGET)/postinstall/$(SERVICE_NAME)
+	if [ -f service/monitrc.tt ] ; then
+		$(TPAGE) $(TPAGE_ARGS) service/monit.tt > $(TARGET)/services/$(SERVICE_NAME)/monitrc ; \
+		chmod go-rwx $(TARGET)/services/$(SERVICE_NAME)/monitrc
+	fi
 
 deploy-upstart: deploy-service
 	-cp service/$(SERVICE_NAME).conf /etc/init/
