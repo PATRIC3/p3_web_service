@@ -20,6 +20,11 @@ APP_SCRIPT   = ./bin/p3-web
 
 PATH := $(DEPLOY_RUNTIME)/build-tools/bin:$(PATH)
 
+ifdef DEPLOYMENT_VAR_DIR
+SERVICE_LOGDIR = $(DEPLOYMENT_VAR_DIR)/services/$(SERVICE_NAME)
+TPAGE_SERVICE_LOGDIR = --define kb_service_log_dir=$(SERVICE_LOGDIR)
+endif
+
 CONFIG          = p3-web.conf
 CONFIG_TEMPLATE = $(CONFIG).tt
 
@@ -93,7 +98,8 @@ TPAGE_ARGS = --define kb_runas_user=$(SERVICE_USER) \
 	--define email_host=$(EMAIL_HOST) \
 	--define email_port=$(EMAIL_PORT) \
 	--define email_username=$(EMAIL_USERNAME) \
-	--define email_password=$(EMAIL_PASSWORD)
+	--define email_password=$(EMAIL_PASSWORD) \
+	$(TPAGE_SERVICE_LOGDIR)
 
 # to wrap scripts and deploy them to $(TARGET)/bin using tools in
 # the dev_container. right now, these vars are defined in
