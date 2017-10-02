@@ -14,11 +14,16 @@ USER_SERVICE_PORT = 3002
 
 #APP_REPO     = https://github.com/PATRIC3/p3_web.git
 APP_REPO     = https://github.com/olsonanl/p3_web.git
-APP_TAG	     = -b build.fix
+#APP_TAG	     = -b build.fix
 APP_DIR      = p3_web
 APP_SCRIPT   = ./bin/p3-web
 
 PATH := $(DEPLOY_RUNTIME)/build-tools/bin:$(PATH)
+
+ifdef DEPLOYMENT_VAR_DIR
+SERVICE_LOGDIR = $(DEPLOYMENT_VAR_DIR)/services/$(SERVICE_NAME)
+TPAGE_SERVICE_LOGDIR = --define kb_service_log_dir=$(SERVICE_LOGDIR)
+endif
 
 CONFIG          = p3-web.conf
 CONFIG_TEMPLATE = $(CONFIG).tt
@@ -93,7 +98,8 @@ TPAGE_ARGS = --define kb_runas_user=$(SERVICE_USER) \
 	--define email_host=$(EMAIL_HOST) \
 	--define email_port=$(EMAIL_PORT) \
 	--define email_username=$(EMAIL_USERNAME) \
-	--define email_password=$(EMAIL_PASSWORD)
+	--define email_password=$(EMAIL_PASSWORD) \
+	$(TPAGE_SERVICE_LOGDIR)
 
 # to wrap scripts and deploy them to $(TARGET)/bin using tools in
 # the dev_container. right now, these vars are defined in
@@ -106,14 +112,23 @@ SRC_PERL = $(wildcard scripts/*.pl)
 
 default: build-app build-config
 
-build-app:
-	if [ ! -f $(APP_DIR)/package.json ] ; then \
-		git clone $(APP_TAG) --recursive $(APP_REPO) $(APP_DIR); \
-	fi
-	cd $(APP_DIR); npm install grunt
-	cd $(APP_DIR); npm install
-	cd $(APP_DIR); npm install forever
-	cd $(APP_DIR); ./buildClient.sh
+build-app: $(APP_DIR)/package.json build-grunt.tag build-primary.tag build-forever.tag build-app-client.tag
+
+$(APP_DIR)/package.json:
+	git clone $(APP_TAG) --recursive $(APP_REPO) $(APP_DIR); 
+	ln -s $(APP_DIR) app
+
+build-grunt.tag:
+	(cd $(APP_DIR); npm install grunt) && touch build-grunt.tag
+
+build-primary.tag:
+	(cd $(APP_DIR); npm install) && touch build-primary.tag
+
+build-forever.tag:
+	(cd $(APP_DIR); npm install forever) && touch build-forever.tag
+
+build-app-client.tag:
+	(cd $(APP_DIR); ./buildClient.sh) && touch build-app-client.tag
 
 dist: 
 
@@ -140,10 +155,10 @@ deploy-scripts:
 deploy-service: deploy-run-scripts deploy-app deploy-config
 
 deploy-app: build-app
-	-mkdir $(SERVICE_APP_DIR)
-	rsync --delete -arv $(APP_DIR)/. $(SERVICE_APP_DIR)
+	-mkdir -p $(SERVICE_APP_DIR)
+	rsync --exclude .git --delete -arv $(APP_DIR)/. $(SERVICE_APP_DIR)
 
-deploy-config: build-config
+deploy-config: 
 	$(TPAGE) $(TPAGE_ARGS) $(CONFIG_TEMPLATE) > $(SERVICE_APP_DIR)/$(CONFIG)
 
 build-config:
@@ -151,14 +166,17 @@ build-config:
 
 deploy-run-scripts:
 	mkdir -p $(TARGET)/services/$(SERVICE_DIR)
-	$(TPAGE) $(TPAGE_ARGS) service/start_service.tt > $(TARGET)/services/$(SERVICE_DIR)/start_service
-	chmod +x $(TARGET)/services/$(SERVICE_DIR)/start_service
-	$(TPAGE) $(TPAGE_ARGS) service/stop_service.tt > $(TARGET)/services/$(SERVICE_DIR)/stop_service
-	chmod +x $(TARGET)/services/$(SERVICE_DIR)/stop_service
-	if [ -f service/upstart.tt ] ; then \
-		$(TPAGE) $(TPAGE_ARGS) service/upstart.tt > service/$(SERVICE_NAME).conf; \
+	for script in start_service stop_service postinstall; do \
+		$(TPAGE) $(TPAGE_ARGS) service/$$script.tt > $(TARGET)/services/$(SERVICE_NAME)/$$script ; \
+		chmod +x $(TARGET)/services/$(SERVICE_NAME)/$$script ; \
+	done
+	mkdir -p $(TARGET)/postinstall
+	rm -f $(TARGET)/postinstall/$(SERVICE_NAME)
+	ln -s ../services/$(SERVICE_NAME)/postinstall $(TARGET)/postinstall/$(SERVICE_NAME)
+	if [ -f service/monitrc.tt ] ; then \
+		$(TPAGE) $(TPAGE_ARGS) service/monitrc.tt > $(TARGET)/services/$(SERVICE_NAME)/monitrc ; \
+		chmod go-rwx $(TARGET)/services/$(SERVICE_NAME)/monitrc; \
 	fi
-	echo "done executing deploy-service target"
 
 deploy-upstart: deploy-service
 	-cp service/$(SERVICE_NAME).conf /etc/init/
